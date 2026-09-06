@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waypoint — Find your next spot</title>
+<title>Outdoor Exploration — Find your next spot</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -81,9 +81,10 @@
 
   .brand-mark {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 26px;
+    font-size: 19px;
     letter-spacing: 1px;
     line-height: 1;
+    white-space: nowrap;
   }
 
   .brand-sub {
@@ -532,11 +533,15 @@
 
   .splash-mark {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 58px;
-    letter-spacing: 5px;
+    font-size: 40px;
+    letter-spacing: 3px;
     color: var(--white);
     border-left: 5px solid var(--amber);
     padding-left: 16px;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .splash-mark { font-size: 26px; letter-spacing: 1.5px; padding-left: 10px; white-space: normal; text-align: left; }
   }
   .splash-tag {
     font-size: 15px;
@@ -566,8 +571,8 @@
 <div class="splash" id="splash">
   <div class="splash-inner" id="splashInner">
     <div class="splash-stage">
-      <div class="splash-mark">WAYPOINT</div>
-      <div class="splash-tag">Welcome to Waypoint</div>
+      <div class="splash-mark">OUTDOOR EXPLORATION</div>
+      <div class="splash-tag">Welcome to Outdoor Exploration</div>
     </div>
   </div>
 </div>
@@ -577,7 +582,7 @@
 <div class="topbar">
   <div class="brand">
     <div>
-      <div class="brand-mark">WAYPOINT</div>
+      <div class="brand-mark">OUTDOOR EXPLORATION</div>
       <div class="brand-sub">Crowd-sourced spots for getting outside</div>
     </div>
   </div>
@@ -1097,7 +1102,7 @@
     setTimeout(() => {
       splashInner.innerHTML = `
         <div class="splash-stage">
-          <div class="splash-mark">WAYPOINT</div>
+          <div class="splash-mark">OUTDOOR EXPLORATION</div>
           <button class="splash-btn" id="accessBtn">Access the map</button>
         </div>
       `;
