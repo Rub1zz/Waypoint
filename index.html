@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
   :root {
     --forest: #16281f;
@@ -111,6 +112,28 @@
   .add-btn:hover { background: var(--amber-dark); transform: translateY(-1px); }
   .add-btn:active { transform: translateY(0); }
   .add-btn.active { background: var(--forest); color: var(--amber); }
+
+  .view-tabs {
+    position: absolute;
+    top: 66px;
+    left: 16px;
+    z-index: 1000;
+    display: flex;
+    gap: 2px;
+    background: var(--forest);
+    border-radius: 3px;
+    padding: 3px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+  .view-tab {
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--tan-2);
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .view-tab.active { background: var(--amber); color: var(--forest); }
 
   /* ---------- Add-mode banner ---------- */
   .add-banner {
@@ -508,6 +531,126 @@
     .add-btn { padding: 12px 14px; font-size: 13px; }
   }
 
+  /* ---------- Carpool board ---------- */
+  .carpool-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: rgba(20, 30, 24, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .carpool-overlay.show { display: flex; }
+
+  .carpool-panel {
+    background: var(--tan);
+    width: 92%;
+    max-width: 560px;
+    max-height: 86vh;
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .carpool-header {
+    background: var(--forest);
+    color: var(--white);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .carpool-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.4px;
+  }
+  .carpool-close {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: var(--white);
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .carpool-locked {
+    padding: 50px 30px;
+    text-align: center;
+  }
+  .locked-icon { font-size: 34px; margin-bottom: 10px; }
+  .locked-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--forest);
+    letter-spacing: 0.3px;
+  }
+  .locked-sub {
+    font-size: 13px;
+    color: var(--rock);
+    opacity: 0.75;
+    margin: 10px auto 20px;
+    max-width: 340px;
+    line-height: 1.5;
+  }
+  .carpool-signin { max-width: 220px; margin: 0 auto; }
+
+  .carpool-content { display: flex; flex-direction: column; overflow: hidden; }
+  .carpool-toolbar {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--tan-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .carpool-user { font-size: 12px; color: var(--rock); opacity: 0.75; }
+  .carpool-post-btn { flex: none; padding: 9px 14px; font-size: 12.5px; }
+
+  .carpool-list { overflow-y: auto; padding: 12px 20px 20px; }
+  .carpool-empty {
+    text-align: center;
+    padding: 30px 10px;
+    color: var(--rock);
+    opacity: 0.65;
+    font-size: 13px;
+  }
+
+  .carpool-card {
+    background: var(--white);
+    border-radius: 5px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--amber);
+  }
+  .carpool-route {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--forest);
+  }
+  .carpool-meta {
+    font-size: 11.5px;
+    color: var(--rock);
+    opacity: 0.75;
+    margin-top: 3px;
+  }
+  .carpool-notes {
+    font-size: 12.5px;
+    color: var(--rock);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .carpool-poster {
+    font-size: 11px;
+    color: var(--rock);
+    opacity: 0.6;
+    margin-top: 8px;
+  }
+
   /* ---------- Splash screen ---------- */
   .splash {
     position: fixed;
@@ -589,6 +732,11 @@
   <button class="add-btn" id="addBtn">+ Add a spot</button>
 </div>
 
+<div class="view-tabs" id="viewTabs">
+  <div class="view-tab active" data-view="map">🗺️ Map</div>
+  <div class="view-tab" data-view="carpool">🚗 Carpool</div>
+</div>
+
 <div class="add-banner" id="addBanner">
   <span>Tap the map where this spot is</span>
   <button id="cancelAdd">Cancel</button>
@@ -646,6 +794,64 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="carpool-overlay" id="carpoolOverlay">
+  <div class="carpool-panel">
+    <div class="carpool-header">
+      <div class="carpool-title">🚗 Carpool Board</div>
+      <button class="carpool-close" id="carpoolClose">✕ Back to map</button>
+    </div>
+
+    <div class="carpool-locked" id="carpoolLocked">
+      <div class="locked-icon">🔒</div>
+      <div class="locked-title">Sign in with your UVM email</div>
+      <div class="locked-sub">The carpool board is only visible to signed-in UVM students. Sign up with your @uvm.edu address and confirm the link we email you to get access.</div>
+      <button class="btn-primary carpool-signin" id="carpoolSignIn">Sign in / Sign up</button>
+    </div>
+
+    <div class="carpool-content" id="carpoolContent" style="display:none;">
+      <div class="carpool-toolbar">
+        <div class="carpool-user" id="carpoolUser"></div>
+        <button class="btn-primary carpool-post-btn" id="openCarpoolForm">+ Post a carpool</button>
+      </div>
+      <div class="carpool-list" id="carpoolList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="carpoolModalOverlay">
+  <div class="modal">
+    <h2>Post a carpool</h2>
+    <div class="coords">Visible to anyone signed in with a UVM email</div>
+
+    <div class="field">
+      <label>Leaving from</label>
+      <input type="text" id="cFrom" placeholder="e.g. Redstone Campus" maxlength="60">
+    </div>
+    <div class="field">
+      <label>Going to</label>
+      <input type="text" id="cTo" placeholder="e.g. Stowe Mountain Resort" maxlength="60">
+    </div>
+    <div class="field">
+      <label>Date &amp; time</label>
+      <input type="text" id="cWhen" placeholder="e.g. Sat 1/17, leaving 7:00 AM" maxlength="60">
+    </div>
+    <div class="field">
+      <label>Open seats</label>
+      <input type="text" id="cSeats" placeholder="e.g. 3" maxlength="10">
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="cNotes" placeholder="Gas money split, meeting spot, anything else riders should know…" maxlength="300"></textarea>
+    </div>
+    <div class="field-error" id="carpoolError">Fill in from, to, and when at least.</div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="cancelCarpoolModal">Cancel</button>
+      <button class="btn-primary" id="saveCarpool">Post it</button>
+    </div>
+  </div>
+</div>
 
 <script>
   const CATEGORIES = {
@@ -754,11 +960,28 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
   }
 
-  // ---------- Storage ----------
+  // ---------- Storage (browser-local; swap for a real backend like Supabase to make this shared across visitors) ----------
+  function storageGet(key) {
+    try {
+      const v = localStorage.getItem(key);
+      return v === null ? null : v;
+    } catch (e) {
+      return null;
+    }
+  }
+  function storageSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function loadSpots() {
     try {
-      const res = await window.storage.get(STORAGE_KEY, true);
-      spots = res && res.value ? JSON.parse(res.value) : [];
+      const raw = storageGet(STORAGE_KEY);
+      spots = raw ? JSON.parse(raw) : [];
     } catch (e) {
       spots = [];
     }
@@ -766,28 +989,20 @@
     spots = spots.map(s => ({ ...s, recommends: typeof s.recommends === 'number' ? s.recommends : 0 }));
 
     try {
-      const myRes = await window.storage.get(MY_RECOMMENDS_KEY, false);
-      myRecommends = new Set(myRes && myRes.value ? JSON.parse(myRes.value) : []);
+      const raw = storageGet(MY_RECOMMENDS_KEY);
+      myRecommends = new Set(raw ? JSON.parse(raw) : []);
     } catch (e) {
       myRecommends = new Set();
     }
 
-    let alreadySeeded = false;
-    try {
-      const seedRes = await window.storage.get(SEED_KEY, true);
-      alreadySeeded = !!(seedRes && seedRes.value);
-    } catch (e) {
-      alreadySeeded = false;
-    }
+    let alreadySeeded = !!storageGet(SEED_KEY);
 
     if (!alreadySeeded) {
       const existingIds = new Set(spots.map(s => s.id));
       SEED_SPOTS.forEach(seed => {
         if (!existingIds.has(seed.id)) spots.push(seed);
       });
-      try {
-        await window.storage.set(SEED_KEY, '1', true);
-      } catch (e) { /* ignore */ }
+      storageSet(SEED_KEY, '1');
       await saveSpots();
     }
 
@@ -795,17 +1010,12 @@
   }
 
   async function saveSpots() {
-    try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(spots), true);
-    } catch (e) {
-      showToast("Couldn't save — try again");
-    }
+    const ok = storageSet(STORAGE_KEY, JSON.stringify(spots));
+    if (!ok) showToast("Couldn't save — try again");
   }
 
   async function saveMyRecommends() {
-    try {
-      await window.storage.set(MY_RECOMMENDS_KEY, JSON.stringify([...myRecommends]), false);
-    } catch (e) { /* non-critical */ }
+    storageSet(MY_RECOMMENDS_KEY, JSON.stringify([...myRecommends]));
   }
 
   // ---------- Rendering ----------
@@ -1092,6 +1302,145 @@
   checkMobile();
 
   panelToggle.addEventListener('click', () => panel.classList.toggle('collapsed'));
+
+  // ---------- View tabs (Map / Carpool) ----------
+  const viewTabs = document.querySelectorAll('.view-tab');
+  const carpoolOverlay = document.getElementById('carpoolOverlay');
+  const carpoolClose = document.getElementById('carpoolClose');
+
+  viewTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      viewTabs.forEach(t => t.classList.toggle('active', t === tab));
+      if (tab.dataset.view === 'carpool') {
+        openCarpoolBoard();
+      } else {
+        carpoolOverlay.classList.remove('show');
+      }
+    });
+  });
+
+  carpoolClose.addEventListener('click', () => {
+    carpoolOverlay.classList.remove('show');
+    viewTabs.forEach(t => t.classList.toggle('active', t.dataset.view === 'map'));
+  });
+
+  // ---------- Netlify Identity gating ----------
+  const carpoolLocked = document.getElementById('carpoolLocked');
+  const carpoolContent = document.getElementById('carpoolContent');
+  const carpoolUserEl = document.getElementById('carpoolUser');
+  const carpoolSignInBtn = document.getElementById('carpoolSignIn');
+
+  function refreshCarpoolAuthView() {
+    const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+    if (user) {
+      carpoolLocked.style.display = 'none';
+      carpoolContent.style.display = 'flex';
+      carpoolUserEl.textContent = `Signed in as ${user.email}`;
+      renderCarpoolList();
+    } else {
+      carpoolLocked.style.display = 'block';
+      carpoolContent.style.display = 'none';
+    }
+  }
+
+  function openCarpoolBoard() {
+    carpoolOverlay.classList.add('show');
+    refreshCarpoolAuthView();
+  }
+
+  carpoolSignInBtn.addEventListener('click', () => {
+    if (window.netlifyIdentity) window.netlifyIdentity.open('login');
+    else showToast('Identity widget not loaded — check your Netlify Identity setup');
+  });
+
+  if (window.netlifyIdentity) {
+    netlifyIdentity.on('init', () => refreshCarpoolAuthView());
+    netlifyIdentity.on('login', () => {
+      netlifyIdentity.close();
+      refreshCarpoolAuthView();
+      showToast('Signed in');
+    });
+    netlifyIdentity.on('logout', () => refreshCarpoolAuthView());
+    netlifyIdentity.init();
+  }
+
+  // ---------- Carpool board data (localStorage; swap for Supabase to share across everyone) ----------
+  const CARPOOL_KEY = 'carpools';
+  let carpools = [];
+
+  function loadCarpools() {
+    try {
+      const raw = storageGet(CARPOOL_KEY);
+      carpools = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      carpools = [];
+    }
+  }
+
+  function saveCarpools() {
+    storageSet(CARPOOL_KEY, JSON.stringify(carpools));
+  }
+
+  function renderCarpoolList() {
+    const listEl = document.getElementById('carpoolList');
+    if (carpools.length === 0) {
+      listEl.innerHTML = `<div class="carpool-empty">No carpools posted yet.<br>Be the first — tap "Post a carpool".</div>`;
+      return;
+    }
+    const sorted = [...carpools].sort((a, b) => b.postedAt - a.postedAt);
+    listEl.innerHTML = '';
+    sorted.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'carpool-card';
+      card.innerHTML = `
+        <div class="carpool-route">${escapeHtml(c.from)} → ${escapeHtml(c.to)}</div>
+        <div class="carpool-meta">${escapeHtml(c.when)}${c.seats ? ' · ' + escapeHtml(c.seats) + ' seat(s) open' : ''}</div>
+        ${c.notes ? `<div class="carpool-notes">${escapeHtml(c.notes)}</div>` : ''}
+        <div class="carpool-poster">Posted by ${escapeHtml(c.postedBy)}</div>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  const carpoolModalOverlay = document.getElementById('carpoolModalOverlay');
+  const openCarpoolFormBtn = document.getElementById('openCarpoolForm');
+  const cancelCarpoolModalBtn = document.getElementById('cancelCarpoolModal');
+  const saveCarpoolBtn = document.getElementById('saveCarpool');
+
+  openCarpoolFormBtn.addEventListener('click', () => {
+    ['cFrom', 'cTo', 'cWhen', 'cSeats', 'cNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('carpoolError').classList.remove('show');
+    carpoolModalOverlay.classList.add('show');
+  });
+
+  cancelCarpoolModalBtn.addEventListener('click', () => carpoolModalOverlay.classList.remove('show'));
+  carpoolModalOverlay.addEventListener('click', (e) => { if (e.target === carpoolModalOverlay) carpoolModalOverlay.classList.remove('show'); });
+
+  saveCarpoolBtn.addEventListener('click', () => {
+    const from = document.getElementById('cFrom').value.trim();
+    const to = document.getElementById('cTo').value.trim();
+    const when = document.getElementById('cWhen').value.trim();
+    if (!from || !to || !when) {
+      document.getElementById('carpoolError').classList.add('show');
+      return;
+    }
+    const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+    const post = {
+      id: 'carpool_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      from, to, when,
+      seats: document.getElementById('cSeats').value.trim(),
+      notes: document.getElementById('cNotes').value.trim(),
+      postedBy: (user && user.email) || 'Unknown',
+      postedAt: Date.now()
+    };
+    carpools.push(post);
+    saveCarpools();
+    renderCarpoolList();
+    carpoolModalOverlay.classList.remove('show');
+    showToast('Carpool posted');
+  });
+
+  loadCarpools();
 
   // ---------- Splash screen ----------
   const splash = document.getElementById('splash');
